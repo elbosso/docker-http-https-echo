@@ -1,11 +1,27 @@
-my-http-listener:
-    image: mendhak/http-https-echo
+version: "3.1"
+services:
+  pi-http-https-echo:
+    build:
+      context: .
+#    image: 'mendhak/http-https-echo'
+    container_name: pi-http-https-echo
+    hostname: pi-http-https-echo
+#    ports:
+#      - 8888:8888
     environment: 
         - HTTP_PORT=8888
         - HTTPS_PORT=9999
-    ports:
-        - "8080:8888"
-        - "8443:9999"
-    # volumes:
-    #     - /etc/ssl/certs/ssl-cert-snakeoil.pem:/app/fullchain.pem
-    #     - /etc/ssl/private/ssl-cert-snakeoil.key:/app/privkey.pem
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.http-https-echo.rule=Host(`http-https-echo.pi-docker.lab`)"
+      - "traefik.http.services.http-https-echo.loadbalancer.server.port=8888"
+      - "traefik.docker.network=pi_traefik_proxy"
+    networks:
+      - traefik_proxy
+
+networks:
+  traefik_proxy:
+    external:
+      name: pi_traefik_proxy
+
